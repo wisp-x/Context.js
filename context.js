@@ -1,20 +1,16 @@
 /*
  * Context.js
- * Copyright Jacob Kelley
+ * Copyright Jacob Kelley, Modified by WispX
  * MIT License
- *
- * Modified by Joshua Christman
  */
+window.context = window.context || (function () {
 
-context = (function () {
-
-	var options = {
+	let options = {
 		fadeSpeed: 100,
 		filter: function ($obj) {
 			// Modify $obj, Do not return
 		},
 		above: 'auto',
-        left: 'auto',
 		preventDoubleContext: true,
 		compress: false
 	};
@@ -23,101 +19,87 @@ context = (function () {
 
 		options = $.extend({}, options, opts);
 
-		$(document).on('click', function () {
-			$('.dropdown-context').fadeOut(options.fadeSpeed, function(){
-				$('.dropdown-context').css({display:''}).find('.drop-left').removeClass('drop-left');
+		$(document).on('click', 'html', function () {
+			$('.dropdown-context').fadeOut(options.fadeSpeed, function () {
+				$('.dropdown-context').css({display: ''}).find('.drop-left').removeClass('drop-left');
 			});
 		});
-		if(options.preventDoubleContext){
+		if (options.preventDoubleContext) {
 			$(document).on('contextmenu', '.dropdown-context', function (e) {
 				e.preventDefault();
 			});
 		}
-		$(document).on('mouseenter', '.dropdown-submenu', function(){
-			var $sub = $(this).find('.dropdown-context-sub:first'),
+		$(document).on('mouseenter', '.dropdown-submenu', function () {
+			let $sub = $(this).find('.dropdown-context-sub:first'),
 				subWidth = $sub.width(),
 				subLeft = $sub.offset().left,
-				collision = (subWidth+subLeft) > window.innerWidth;
-			if(collision){
+				collision = (subWidth + subLeft) > window.innerWidth;
+			if (collision) {
 				$sub.addClass('drop-left');
 			}
 		});
 
 	}
 
-	function updateOptions(opts){
+	function updateOptions(opts) {
 		options = $.extend({}, options, opts);
 	}
 
-	function buildMenu(data, id, subMenu) {
-		var subClass = (subMenu) ? ' dropdown-context-sub' : '',
+	function buildMenu(event, data, id, subMenu) {
+		let subClass = (subMenu) ? ' dropdown-context-sub' : '',
 			compressed = options.compress ? ' compressed-context' : '',
-			$menu = $('<ul class="dropdown-menu dropdown-context' + subClass + compressed +'" id="dropdown-' + id + '"></ul>');
-        
-        return buildMenuItems($menu, data, id, subMenu);
-	}
-
-    function buildMenuItems($menu, data, id, subMenu, addDynamicTag) {
-	    var linkTarget = '';
-        for(var i = 0; i<data.length; i++) {
-        	if (typeof data[i].divider !== 'undefined') {
-                var divider = '<li class="divider';
-                divider += (addDynamicTag) ? ' dynamic-menu-item' : '';
-                divider += '"></li>';
-				$menu.append(divider);
+			$menu = $('<ul class="dropdown-menu dropdown-context' + subClass + compressed + '" id="dropdown-' + id + '"></ul>');
+		let i = 0, linkTarget = '';
+		for (i; i < data.length; i++) {
+			if (typeof data[i].divider !== 'undefined') {
+				$menu.append('<li class="divider"></li>');
 			} else if (typeof data[i].header !== 'undefined') {
-                var header = '<li class="nav-header';
-                header += (addDynamicTag) ? ' dynamic-menu-item' : '';
-                header += '">' + data[i].header + '</li>';
-				$menu.append(header);
-            } else if (typeof data[i].menu_item_src !== 'undefined') {
-                var funcName;
-                if (typeof data[i].menu_item_src === 'function') {
-                    if (data[i].menu_item_src.name === "") { // The function is declared like "foo = function() {}"
-                        for (var globalVar in window) {
-                            if (data[i].menu_item_src == window[globalVar]) {
-                                funcName = globalVar;
-                                break;
-                            }
-                        }
-                    } else {
-                        funcName = data[i].menu_item_src.name;
-                    }
-                } else {
-                    funcName = data[i].menu_item_src;
-                }
-                $menu.append('<li class="dynamic-menu-src" data-src="' + funcName + '"></li>');
+				$menu.append('<li class="nav-header">' + data[i].header + '</li>');
 			} else {
 				if (typeof data[i].href == 'undefined') {
-					data[i].href = '#';
+					data[i].href = 'javascript:void(0)';
 				}
 				if (typeof data[i].target !== 'undefined') {
-					linkTarget = ' target="'+data[i].target+'"';
+					linkTarget = ' target="' + data[i].target + '"';
 				}
+				let $sub;
 				if (typeof data[i].subMenu !== 'undefined') {
-                    var sub_menu = '<li class="dropdown-submenu';
-                    sub_menu += (addDynamicTag) ? ' dynamic-menu-item' : '';
-                    sub_menu += '"><a tabindex="-1" href="' + data[i].href + '">' + data[i].text + '</a></li>'
-					$sub = (sub_menu);
+					$sub = $('<li class="dropdown-submenu"><a tabindex="-1" href="' + data[i].href + '">' + data[i].text + '</a></li>');
 				} else {
-                    var element = '<li';
-                    element += (addDynamicTag) ? ' class="dynamic-menu-item"' : '';
-                    element += '><a tabindex="-1" href="' + data[i].href + '"'+linkTarget+'>';
-                    if (typeof data[i].icon !== 'undefined')
-                        element += '<span class="glyphicon ' + data[i].icon + '"></span> ';
-                    element += data[i].text + '</a></li>';
-					$sub = $(element);
+					$sub = $('<li><a tabindex="-1" href="' + data[i].href + '"' + linkTarget + '>' + data[i].text + '</a></li>');
 				}
+				// show or hide?
+				if (typeof data[i].visible === 'function') {
+					if (! data[i].visible(event)) {
+						$sub.hide();
+					}
+				}
+				let $a = $sub.find('a');
+				// custom classes
+				if (typeof data[i].classes !== 'undefined') {
+					for (const classKey in data[i].classes) {
+						$a.addClass(data[i].classes[classKey]);
+					}
+				}
+				// custom attributes
+				if (typeof data[i].attributes !== 'undefined') {
+					for (const attributesKey in data[i].attributes) {
+						$a.attr(attributesKey, data[i].attributes[attributesKey]);
+					}
+				}
+				// click callback
 				if (typeof data[i].action !== 'undefined') {
-                    $action = data[i].action;
-					$sub
-						.find('a')
-						.addClass('context-event')
-						.on('click', createCallback($action));
+					let actionID = 'event-' + new Date().getTime() * Math.floor(Math.random() * 100000),
+						eventAction = data[i].action;
+					$a.attr('id', actionID);
+					$('#' + actionID).addClass('context-event');
+					$(document).on('click', '#' + actionID, function () {
+						eventAction.call(this, event);
+					});
 				}
 				$menu.append($sub);
 				if (typeof data[i].subMenu != 'undefined') {
-					var subMenuData = buildMenu(data[i].subMenu, id, true);
+					let subMenuData = buildMenu(event, data[i].subMenu, id, true);
 					$menu.find('li:last').append(subMenuData);
 				}
 			}
@@ -125,49 +107,54 @@ context = (function () {
 				options.filter($menu.find('li:last'));
 			}
 		}
-        return $menu;
-    }
+		return $menu;
+	}
 
-	function addContext(selector, data) {
-        if (typeof data.id !== 'undefined' && typeof data.data !== 'undefined') {
-            var id = data.id;
-            $menu = $('body').find('#dropdown-' + id)[0];
-            if (typeof $menu === 'undefined') {
-                $menu = buildMenu(data.data, id);
-                $('body').append($menu);
-            }
-        } else {
-            var d = new Date(),
-                id = d.getTime(),
-                $menu = buildMenu(data, id);
-                $('body').append($menu);
-        }
+	/**
+	 * 添加菜单
+	 * @param selector 被右击元素
+	 * @param opts 参数 {
+	 *     data: Array[Object] {
+	 *         text: String, // 文本
+	 *         classes: Array, // class
+	 *         attributes: Object, // 属性
+	 *         action: Function, // 点击后的回调 function (e) {}
+	 *         visible: Function, // 函数返回bool类型，表示显示或隐藏按钮 function (e) {}
+	 *     }
+	 *     beforeOpen: Function, // 打开前 function (item) {}
+	 *     afterOpen: Function, // 打开后 function (item, dropdown) {}
+	 * }
+	 */
+	function addContext(selector, opts) {
+		opts = opts || {};
+		let data = opts.data || {};
+		let id = new Date().getTime();
 
-		$(selector).on('contextmenu', function (e) {
+		$(document).on('contextmenu', selector, function (e) {
 			e.preventDefault();
 			e.stopPropagation();
 
-            currentContextSelector = $(this);
+			let item = e.target.closest(selector);
+			typeof opts.beforeOpen === 'function' && opts.beforeOpen.call(e, item);
+
+			let $menu = buildMenu(item, data, id);
+			// clear dropdowns
+			$('body .dropdown-menu.dropdown-context').remove();
+			// create dropdown
+			$('body').append($menu);
 
 			$('.dropdown-context:not(.dropdown-context-sub)').hide();
 
-			$dd = $('#dropdown-' + id);
-
-            $dd.find('.dynamic-menu-item').remove(); // Destroy any old dynamic menu items
-            $dd.find('.dynamic-menu-src').each(function(idx, element) {
-                var menuItems = window[$(element).data('src')]($(selector));
-                $parentMenu = $(element).closest('.dropdown-menu.dropdown-context');
-                $parentMenu = buildMenuItems($parentMenu, menuItems, id, undefined, true);
-            });
+			let $dd = $("#dropdown-" + id);
 
 			if (typeof options.above == 'boolean' && options.above) {
 				$dd.addClass('dropdown-context-up').css({
 					top: e.pageY - 20 - $('#dropdown-' + id).height(),
 					left: e.pageX - 13
 				}).fadeIn(options.fadeSpeed);
-			} else if (typeof options.above == 'string' && options.above == 'auto') {
+			} else if (typeof options.above == 'string' && options.above === 'auto') {
 				$dd.removeClass('dropdown-context-up');
-				var autoH = $dd.height() + 12;
+				let autoH = $dd.height() + 12;
 				if ((e.pageY + autoH) > $('html').height()) {
 					$dd.addClass('dropdown-context-up').css({
 						top: e.pageY - 20 - autoH,
@@ -181,19 +168,7 @@ context = (function () {
 				}
 			}
 
-            if (typeof options.left == 'boolean' && options.left) {
-                $dd.addClass('dropdown-context-left').css({
-                    left: e.pageX - $dd.width()
-                }).fadeIn(options.fadeSpeed);
-            } else if (typeof options.left == 'string' && options.left == 'auto') {
-                $dd.removeClass('dropdown-context-left');
-                var autoL = $dd.width() - 12;
-                if ((e.pageX + autoL) > $('html').width()) {
-                    $dd.addClass('dropdown-context-left').css({
-                        left: e.pageX - $dd.width() + 13
-                    });
-                }
-            }
+			typeof opts.afterOpen === 'function' && opts.afterOpen.call(e, item, $dd.get(0));
 		});
 	}
 
@@ -208,9 +183,3 @@ context = (function () {
 		destroy: destroyContext
 	};
 })();
-
-var createCallback = function(func) {
-    return function(event) { func(event, currentContextSelector) };
-}
-
-currentContextSelector = undefined;
