@@ -7,7 +7,7 @@
 ## About
 
 This is an enhanced version of the right-click context menu library. In the past few years, [Lsky Pro](https://github.com/wisp-x/lsky-pro)
-I have been using [https://github.com/jakiestfu/Context.js](https://github.com/jakiestfu/Context.js).  
+I have been using [jakiestfu/Context.js](https://github.com/jakiestfu/Context.js).  
 Although the source library has stopped updating since 2014, it still works well. But when the business was upgraded, this old version no longer met my needs, so I have this version.
 Note that this library depends on Jquery.
 
