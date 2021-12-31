@@ -7,8 +7,8 @@
 ## About
 
 这是一个加强版的右键上下文菜单库，在过去的几年里，[Lsky Pro](https://github.com/wisp-x/lsky-pro)
-一直在使用 [https://github.com/jakiestfu/Context.js](https://github.com/jakiestfu/Context.js) 尽管源库自 2014 就停止更新，但是它依然可以良好的工作。
-不过在业务升级时，这个旧版本已经不满足我的需求，所以有了这个版本。  
+一直在使用 [https://github.com/jakiestfu/Context.js](https://github.com/jakiestfu/Context.js)。  
+尽管源库自 2014 就停止更新，但是它依然可以良好的工作。 不过在业务升级时，这个旧版本已经不满足我的需求，所以有了这个版本。  
 注意，这个库依赖于 Jquery。
 
 ## Features
