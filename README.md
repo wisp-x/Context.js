@@ -1,6 +1,6 @@
 # Context.js
 
-[简体中文](README.md)|[English](README-en.md)
+简体中文|[English](README-en.md)
 
 ![image](https://user-images.githubusercontent.com/22728201/147812723-6dd06424-642e-4b0a-94e9-3adbfa09450a.png)
 
